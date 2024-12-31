@@ -10,7 +10,10 @@ export function Log(propertyKeys?: string[]) {
 
             if (propertyKeys) {
                 const properties = propertyKeys.reduce((r, c) => {
-                    r[c] = args.map(a => a[c])
+                    r[c] = args.map(a => {
+                        if (typeof a == "object") return a[c]
+                        return a
+                    })
                     return r
                 }, <Record<string, any[]>>{})
 
