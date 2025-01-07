@@ -1,22 +1,29 @@
 import * as fs from 'fs'
 
-export function Log(...propertyKeys: string[] | [string[]]) {
+export function Log(...propertyNames: string[] | [string[]]) {
     return function (target: any, key: string, descriptor: PropertyDescriptor) {
         let original = descriptor.value
-        console.log(target.constructor.name + "." + original.name);
 
         descriptor.value = function (...args: any[]) {
-            const source = `${target.constructor.name}.${key}`
+            const source = `${target.name}.${key}`
+            const propertyKeys = propertyNames.flat()
 
-            if (propertyKeys) {
-                const properties = propertyKeys.flat().reduce((r, c) => {
+            if (propertyKeys.length > 0) {
+                const properties = propertyKeys.reduce((r, c) => {
                     r[c] = args.map(a => {
-                        if (typeof a == "object") return a[c]
+                        if (typeof a != "object") return a
+
+                        for (const cKey of c.split(".")) {
+                            if (!a) return a
+                            a = a[cKey]
+                        }
                         return a
                     })
                     return r
                 }, <Record<string, any[]>>{})
 
+
+                console.log(properties);
                 Logger.log(properties, `(${source}) arguements`)
             } else {
                 Logger.log(args, `(${source}) arguements`)
