@@ -5,7 +5,7 @@ export function Log(...propertyNames: string[] | [string[]]) {
         let original = descriptor.value
 
         descriptor.value = function (...args: any[]) {
-            const source = `${target.name}.${key}`
+            const source = `${target.name ?? target.constructor.name}.${key}`
             const propertyKeys = propertyNames.flat()
 
             if (propertyKeys.length > 0) {
@@ -22,8 +22,6 @@ export function Log(...propertyNames: string[] | [string[]]) {
                     return r
                 }, <Record<string, any[]>>{})
 
-
-                console.log(properties);
                 Logger.log(properties, `(${source}) arguements`)
             } else {
                 Logger.log(args, `(${source}) arguements`)
