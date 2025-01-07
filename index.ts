@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 
-export function Log(propertyKeys?: string[]) {
+export function Log(...propertyKeys: string[] | [string[]]) {
     return function (target: any, key: string, descriptor: PropertyDescriptor) {
         let original = descriptor.value
         console.log(target.constructor.name + "." + original.name);
@@ -9,7 +9,7 @@ export function Log(propertyKeys?: string[]) {
             const source = `${target.constructor.name}.${key}`
 
             if (propertyKeys) {
-                const properties = propertyKeys.reduce((r, c) => {
+                const properties = propertyKeys.flat().reduce((r, c) => {
                     r[c] = args.map(a => {
                         if (typeof a == "object") return a[c]
                         return a
@@ -36,7 +36,7 @@ export class Logger {
     private logPath = "./log"
 
     static configure(config: Partial<config>) {
-        this.instance ??= new Logger()
+        this.instance = new Logger()
 
         if (config.localPath) this.instance.logPath = `./${config.localPath}`
     }
