@@ -27,9 +27,9 @@ export function Log(...propertyNames: string[] | [string[]]) {
                 Logger.log(args, `(${source}) arguements`)
             }
 
-            const result = original.apply(this, args)
-
-            Logger.log(result, `(${source}) return`)
+            const result = Promise.resolve(original.apply(this, args)).then((r: any) => {
+                Logger.log(r, `(${source}) return`)
+            })
 
             return result
         }
