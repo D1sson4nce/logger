@@ -45,26 +45,6 @@ function filterObject(obj: Record<string, any>, propertyKeys: string[]) {
 
         return r
     }, <Record<string, any>>{})
-
-    const groupedKeys = propertyKeys.reduce((r, c) => {
-        const [topKey, ...rest] = c.split(".")
-        const restKey = rest.join(".")
-        if (!r[topKey]) r[topKey] = []
-        if (restKey) r[topKey].push(restKey)
-        return r
-    }, <Record<string, string[]>>{})
-
-    const result: Record<string, any> = {};
-
-    for (const key of Object.keys(groupedKeys)) {
-        if (groupedKeys[key].length > 0) {
-            result[key] = filterObject(obj[key], groupedKeys[key]);
-        } else {
-            result[key] = obj[key];
-        }
-    }
-
-    return result
 }
 
 export class Logger {
