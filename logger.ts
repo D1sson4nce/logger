@@ -20,7 +20,8 @@ export function Log(...propertyNames: string[] | [string[]]) {
                 Logger.log(args, `(${source}) arguements`)
             }
 
-            const result = Promise.resolve(original.apply(this, args)).then((r: any) => {
+            const result = original.apply(this, args)
+            Promise.resolve(result).then((r: any) => {
                 Logger.log(r, `(${source}) return`)
             })
 
