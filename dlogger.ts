@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 
 /**
- * Logs all method parameters and return value
+ * Logs all method parameters, return value, and errors
  * @param {string[]} propertyNames if specified, any object parameter will omit all other properties from the log except the ones specified
  */
 export function Log(...propertyNames: string[] | [string[]]) {
@@ -20,12 +20,20 @@ export function Log(...propertyNames: string[] | [string[]]) {
                 Logger.log(args, `(${source}) arguements`)
             }
 
-            const result = original.apply(this, args)
-            Promise.resolve(result).then((r: any) => {
-                Logger.log(r, `(${source}) return`)
-            })
+            try {
+                const result = original.apply(this, args)
+                Promise.resolve(result).then((r: any) => {
+                    Logger.log(r, `(${source}) return`)
+                }).catch(error => {
+                    Logger.log(error.message, `(${source}) error message`)
+                    throw error
+                })
 
-            return result
+                return result
+            } catch (error: any) {
+                Logger.log(error.message, `(${source}) error message`)
+                throw error
+            }
         }
     }
 }
@@ -73,7 +81,7 @@ export class Logger {
             fs.mkdirSync(this.logPath)
         }
 
-        fs.appendFile(`${this.logPath}/${this.date}.txt`, `[${dateTime}] ${line}\n`, () => { })
+        fs.appendFileSync(`${this.logPath}/${this.date}.txt`, `[${dateTime}] ${line}\n`)
     }
 
     private get date() {
