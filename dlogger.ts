@@ -1,4 +1,5 @@
 import * as fs from 'fs'
+import { inspect } from 'util'
 
 /**
  * Logs all method parameters, return value, and errors
@@ -68,10 +69,10 @@ export class Logger {
 
     static log(obj: Object, pretext?: string) {
         if (pretext) {
-            this.instance.writeLine(`${pretext}: ${JSON.stringify(obj)}`)
+            this.instance.writeLine(`${pretext}: ${inspect(obj)}`)
             return
         }
-        this.instance.writeLine(JSON.stringify(obj))
+        this.instance.writeLine(inspect(obj))
     }
 
     private writeLine(line: string) {
