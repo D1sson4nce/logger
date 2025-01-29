@@ -69,10 +69,10 @@ export class Logger {
 
     static log(obj: Object, pretext?: string) {
         if (pretext) {
-            this.instance.writeLine(`${pretext}: ${inspect(obj)}`)
+            this.instance.writeLine(`${pretext}: ${inspect(obj, { depth: Infinity })}`)
             return
         }
-        this.instance.writeLine(inspect(obj))
+        this.instance.writeLine(inspect(obj, { depth: Infinity }))
     }
 
     private writeLine(line: string) {
