@@ -61,18 +61,24 @@ export class Logger {
     private static instance = new Logger()
     private logPath = "./log"
 
-    static configure(config: Partial<config>) {
-        this.instance = new Logger()
+    constructor(config?: Partial<config>) {
+        if (config?.localPath) this.logPath = `./${config.localPath}`
+    }
 
-        if (config.localPath) this.instance.logPath = `./${config.localPath}`
+    static configure(config: Partial<config>) {
+        this.instance = new Logger(config)
     }
 
     static log(obj: Object, pretext?: string) {
+        this.instance.log(obj, pretext)
+    }
+
+    log(obj: Object, pretext?: string) {
         if (pretext) {
-            this.instance.writeLine(`${pretext}: ${inspect(obj, { depth: Infinity })}`)
+            this.writeLine(`${pretext}: ${inspect(obj, { depth: Infinity })}`)
             return
         }
-        this.instance.writeLine(inspect(obj, { depth: Infinity }))
+        this.writeLine(inspect(obj, { depth: Infinity }))
     }
 
     private writeLine(line: string) {
@@ -87,12 +93,27 @@ export class Logger {
 
     private get date() {
         const date = new Date()
-        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+        return this.padSingleDigit([
+            date.getFullYear(),
+            date.getMonth() + 1,
+            date.getDate()
+        ]).join("-")
     }
 
     private get time() {
         const date = new Date()
-        return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+        return this.padSingleDigit([
+            date.getHours(),
+            date.getMinutes(),
+            date.getSeconds()
+        ]).join(":")
+    }
+
+    private padSingleDigit(arr: number[]) {
+        return arr.map(n => {
+            if (n > 9) return n.toString()
+            return `0${n}`
+        })
     }
 
     private get dateTime() {
