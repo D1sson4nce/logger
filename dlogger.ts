@@ -2,6 +2,26 @@ import * as fs from 'fs'
 import { inspect } from 'util'
 
 /**
+ * Used to put all decorator logs from this class into a sub directory. This will however use the default log path, not the one that can be set with Logger.configure 
+ * @param {string | undefined} directory Name of the sub directory. If not specified, it will use the name of the class
+ */
+export function Logged(directory?: string) {
+    return <T extends Type<Object>>(constructor: T) => {
+        directory ??= constructor.name
+
+        return class extends constructor {
+            __logger = new Logger({
+                localPath: `${Logger.defaultLogPath}/${directory}`
+            })
+        }
+    }
+}
+
+interface Type<T> extends Function {
+    new(...args: any[]): T
+}
+
+/**
  * Logs all method parameters, return value, and errors
  * @param {string[]} propertyNames if specified, any object parameter will omit all other properties from the log except the ones specified
  */
@@ -10,29 +30,31 @@ export function Log(...propertyNames: string[] | [string[]]) {
         let original = descriptor.value
 
         descriptor.value = function (...args: any[]) {
+            const logger = <Logger>((this as any).__logger || Logger)
+
             const source = `${target.name ?? target.constructor.name}.${key}`
             const propertyKeys = propertyNames.flat()
 
             if (propertyKeys.length > 0) {
                 const filteredArgs = args.map(a => filterObject(a, propertyKeys))
 
-                Logger.log(filteredArgs, `(${source}) arguements`)
+                logger.log(filteredArgs, `(${source}) arguements`)
             } else {
-                Logger.log(args, `(${source}) arguements`)
+                logger.log(args, `(${source}) arguements`)
             }
 
             try {
                 const result = original.apply(this, args)
                 Promise.resolve(result).then((r: any) => {
-                    Logger.log(r, `(${source}) return`)
+                    logger.log(r, `(${source}) return`)
                 }).catch(error => {
-                    Logger.log(error.message, `(${source}) error message`)
+                    logger.log(error.message, `(${source}) error message`)
                     throw error
                 })
 
                 return result
             } catch (error: any) {
-                Logger.log(error.message, `(${source}) error message`)
+                logger.log(error.message, `(${source}) error message`)
                 throw error
             }
         }
@@ -58,8 +80,12 @@ function filterObject(obj: Record<string, any>, propertyKeys: string[]) {
 }
 
 export class Logger {
+    static get defaultLogPath() {
+        return 'log'
+    }
+
     private static instance = new Logger()
-    private logPath = "./log"
+    private logPath = Logger.defaultLogPath
 
     constructor(config?: Partial<config>) {
         if (config?.localPath) this.logPath = `./${config.localPath}`
@@ -69,15 +95,26 @@ export class Logger {
         this.instance = new Logger(config)
     }
 
+    /**
+     * Logs the stringified version of an object
+     * @param {Object} obj the object
+     * @param {string | undefined} pretext text that shows before the obj, to describe it
+     */
     static log(obj: Object, pretext?: string) {
         this.instance.log(obj, pretext)
     }
 
+    /**
+     * Logs the stringified version of an object
+     * @param {Object} obj the object
+     * @param {string | undefined} pretext text that shows before the obj, to describe it
+     */
     log(obj: Object, pretext?: string) {
         if (pretext) {
             this.writeLine(`${pretext}: ${inspect(obj, { depth: Infinity })}`)
             return
         }
+
         this.writeLine(inspect(obj, { depth: Infinity }))
     }
 
@@ -85,7 +122,7 @@ export class Logger {
         const dateTime = this.dateTime
 
         if (!fs.existsSync(this.logPath)) {
-            fs.mkdirSync(this.logPath)
+            fs.mkdirSync(this.logPath, { recursive: true })
         }
 
         fs.appendFileSync(`${this.logPath}/${this.date}.txt`, `[${dateTime}] ${line}\n`)
