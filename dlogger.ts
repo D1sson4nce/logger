@@ -11,7 +11,8 @@ export function Logged(directory?: string) {
 
         return class extends constructor {
             __logger = new Logger({
-                localPath: `${Logger.defaultLogPath}/${directory}`
+                instanceBased: true,
+                localPath: directory
             })
         }
     }
@@ -20,6 +21,8 @@ export function Logged(directory?: string) {
 interface Type<T> extends Function {
     new(...args: any[]): T
 }
+
+let callIdCounter = 0;
 
 /**
  * Logs all method parameters, return value, and errors
@@ -30,6 +33,8 @@ export function Log(...propertyNames: string[] | [string[]]) {
         let original = descriptor.value
 
         descriptor.value = function (...args: any[]) {
+            const callId = callIdCounter++;
+            
             const logger = <Logger>((this as any).__logger || Logger)
 
             const source = `${target.name ?? target.constructor.name}.${key}`
@@ -38,23 +43,30 @@ export function Log(...propertyNames: string[] | [string[]]) {
             if (propertyKeys.length > 0) {
                 const filteredArgs = args.map(a => filterObject(a, propertyKeys))
 
-                logger.log(filteredArgs, `(${source}) arguements`)
+                logger.log(filteredArgs, `[${callId}] (${source}) arguements`)
             } else {
-                logger.log(args, `(${source}) arguements`)
+                logger.log(args, `[${callId}] (${source}) arguements`)
             }
 
             try {
+                const start = performance.now()
+
                 const result = original.apply(this, args)
+
                 Promise.resolve(result).then((r: any) => {
-                    logger.log(r, `(${source}) return`)
+                    const end = performance.now()
+
+                    logger.log(r, `[${callId}] (${source}) return`)
+
+                    if(logger.timer) logger.log(end - start, `[${callId}] (${source}) Elapsed time (ms)`)
                 }).catch(error => {
-                    logger.log(error.message, `(${source}) error message`)
+                    logger.log(error.message, `[${callId}] (${source}) error message`)
                     throw error
                 })
 
                 return result
             } catch (error: any) {
-                logger.log(error.message, `(${source}) error message`)
+                logger.log(error.message, `[${callId}] (${source}) error message`)
                 throw error
             }
         }
@@ -85,14 +97,28 @@ export class Logger {
     }
 
     private static instance = new Logger()
-    private logPath = Logger.defaultLogPath
+
+    private instanceBased = false
+    private _logPath = Logger.defaultLogPath
+    private _timer = false
+
+    get logPath(): string {
+        if(this.instanceBased) return `${Logger.instance.logPath}${this._logPath.substring(1)}`
+        return this._logPath
+    }
+
+    get timer(): boolean {
+        return this._timer || this.instanceBased && Logger.instance.timer
+    }
 
     constructor(config?: Partial<config>) {
-        if (config?.localPath) this.logPath = `./${config.localPath}`
+        if (config?.localPath) this._logPath = `./${config.localPath}`
+        if (config?.instanceBased) this.instanceBased = config.instanceBased
+        if (config?.timer) this._timer = config.timer
     }
 
     static configure(config: Partial<config>) {
-        this.instance = new Logger(config)
+        this.instance = new Logger({ ...config, instanceBased: false })
     }
 
     /**
@@ -159,5 +185,7 @@ export class Logger {
 }
 
 type config = {
+    instanceBased: boolean
     localPath: string
+    timer: boolean
 }

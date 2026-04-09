@@ -9,7 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^22.10.2",
     "fs": "^0.0.1-security"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2"
   }
 }
