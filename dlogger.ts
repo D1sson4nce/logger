@@ -57,7 +57,7 @@ export function Log(...propertyNames: string[] | [string[]]) {
                     const end = performance.now()
 
                     logger.log(r, `[${callId}] (${source}) return`)
-
+                    
                     if(logger.timer) logger.log(end - start, `[${callId}] (${source}) Elapsed time (ms)`)
                 }).catch(error => {
                     logger.log(error.message, `[${callId}] (${source}) error message`)
@@ -107,7 +107,14 @@ export class Logger {
         return this._logPath
     }
 
+    private static get timer() { return Logger.instance.timer }
     get timer(): boolean {
+        console.log({
+            timer: this._timer,
+            instanceBased: this.instanceBased,
+            instancetimer: Logger.instance._timer
+        });
+        
         return this._timer || this.instanceBased && Logger.instance.timer
     }
 
@@ -185,7 +192,7 @@ export class Logger {
 }
 
 type config = {
-    instanceBased: boolean
-    localPath: string
-    timer: boolean
+    instanceBased: boolean //if set to true. behavior of your logger object will be relative the static logger. default: false
+    localPath: string //path within it will make files. default: "log"
+    timer: boolean //time method calls. default: false
 }
