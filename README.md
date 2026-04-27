@@ -19,9 +19,10 @@ To use this package, you need to activate experimentalDecorators, and emitDecora
 Use Logger.configure to set settings for the static instance of the logger. decoator logs will also use these settings.
 ```typescript
 Logger.configure({
-    instanceBased: false //if set to true. behavior of your logger object will be relative the static logger. default: false
-    localPath: "log" //path within it will make files. default: "log"
-    timer: true //time method calls. default: false
+    instanceBased: false, //if set to true. behavior of your logger object will be relative the static logger. default: false
+    localPath: "log", //path within it will make files. default: "log"
+    timer: true, //time method calls. default: false
+    compact: false //compacts json objects when logged. default: true
 })
 ```
 
