@@ -9,11 +9,13 @@ export function Logged(directory?: string) {
     return <T extends Type<Object>>(constructor: T) => {
         directory ??= constructor.name
 
+        const logger = new Logger({
+            instanceBased: true,
+            localPath: directory
+        })
+        
         return class extends constructor {
-            __logger = new Logger({
-                instanceBased: true,
-                localPath: directory
-            })
+            __logger = logger
         }
     }
 }
@@ -141,7 +143,11 @@ export class Logger {
      * @param {Object} obj the object
      * @param {string | undefined} pretext text that shows before the obj, to describe it
      */
-    log(obj: Object, pretext?: string) {
+    log(obj: any, pretext?: string) {
+        if(obj.__logger && obj.__logger instanceof Logger) {
+            delete obj.__logger
+        }
+
         if (pretext) {
             this.writeLine(`${pretext}: ${inspect(obj, { depth: Infinity, compact: this.compact })}`)
             return
