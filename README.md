@@ -1,6 +1,17 @@
 # README
 dlogger is a primitive decorator logger for TypeScript
 
+## tsconfig
+To use this package, you need to activate experimentalDecorators, and emitDecoratorMetadata in the tsconfig.jsoon file
+```json
+{
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,       
+    }
+}
+```
+
 ## Usage
 
 ### Configure

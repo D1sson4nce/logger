@@ -101,27 +101,26 @@ export class Logger {
     private instanceBased = false
     private _logPath = Logger.defaultLogPath
     private _timer = false
+    private _compact = true
 
     get logPath(): string {
         if(this.instanceBased) return `${Logger.instance.logPath}${this._logPath.substring(1)}`
         return this._logPath
     }
 
-    private static get timer() { return Logger.instance.timer }
     get timer(): boolean {
-        console.log({
-            timer: this._timer,
-            instanceBased: this.instanceBased,
-            instancetimer: Logger.instance._timer
-        });
-        
         return this._timer || this.instanceBased && Logger.instance.timer
+    }
+
+    get compact(): boolean {
+        return this.instanceBased ? Logger.instance.compact : this._compact
     }
 
     constructor(config?: Partial<config>) {
         if (config?.localPath) this._logPath = `./${config.localPath}`
         if (config?.instanceBased) this.instanceBased = config.instanceBased
-        if (config?.timer) this._timer = config.timer
+        if (config?.timer != undefined) this._timer = config.timer
+        if (config?.compact != undefined) this._compact = config.compact
     }
 
     static configure(config: Partial<config>) {
@@ -144,11 +143,11 @@ export class Logger {
      */
     log(obj: Object, pretext?: string) {
         if (pretext) {
-            this.writeLine(`${pretext}: ${inspect(obj, { depth: Infinity })}`)
+            this.writeLine(`${pretext}: ${inspect(obj, { depth: Infinity, compact: this.compact })}`)
             return
         }
 
-        this.writeLine(inspect(obj, { depth: Infinity }))
+        this.writeLine(inspect(obj, { depth: Infinity, compact: this.compact }))
     }
 
     private writeLine(line: string) {
@@ -195,4 +194,5 @@ type config = {
     instanceBased: boolean //if set to true. behavior of your logger object will be relative the static logger. default: false
     localPath: string //path within it will make files. default: "log"
     timer: boolean //time method calls. default: false
+    compact: boolean //compacts json objects when logged. default: true
 }

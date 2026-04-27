@@ -1,6 +1,6 @@
 {
-    "name": "dlogger",
-    "version": "1.0.0",
+    "name": "@diss0nance/dlogger",
+    "version": "1.0.4",
     "description": "",
     "main": "dist/index.js",
     "scripts": {
@@ -10,6 +10,10 @@
     "types": "dist/index.d.ts",
     "files": ["/dist"],
     "license": "ISC",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/D1sson4nce/dlogger.git"
+    },
     "dependencies": {
         "fs": "^0.0.1-security"
     },
